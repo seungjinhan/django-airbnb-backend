@@ -25,13 +25,21 @@ SECRET_KEY = "django-insecure-hqnitf#p*8rn7k34zmx_z6o2ud+jbzl%pzn04hl)xj!9fu+^0s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-CUSTOM_APPS = ["users.apps.UsersConfig",
-               "rooms.apps.RoomsConfig",
-               'common.apps.CommonConfig', "experiences.apps.ExperiencesConfig", "categories.apps.CategoriesConfig", 'reviews.apps.ReviewsConfig',]
+CUSTOM_APPS = [
+    "users.apps.UsersConfig",
+    "rooms.apps.RoomsConfig",
+    "common.apps.CommonConfig",
+    "experiences.apps.ExperiencesConfig",
+    "categories.apps.CategoriesConfig",
+    "reviews.apps.ReviewsConfig",
+    "wishlists.apps.WishlistsConfig",
+    "bookings.apps.BookingsConfig",
+]
+
 SYSTEM_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,7 +48,7 @@ SYSTEM_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
-INSTALLED_APPS = CUSTOM_APPS+SYSTEM_APPS
+INSTALLED_APPS = CUSTOM_APPS + SYSTEM_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -125,4 +133,4 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
