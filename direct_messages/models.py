@@ -7,6 +7,9 @@ class ChattingRoom(CommonModel):
 
     users = models.ManyToManyField("users.User")
 
+    def __str__(self) -> str:
+        return "Chatting Room"
+
 
 class Message(CommonModel):
     """Message Model"""
@@ -22,3 +25,6 @@ class Message(CommonModel):
         "direct_messages.ChattingRoom",
         on_delete=models.CASCADE,
     )
+
+    def __str__(self) -> str:
+        return f"{self.user} says: {self.text}"
