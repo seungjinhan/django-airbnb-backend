@@ -21,10 +21,26 @@ class RoomAdmin(admin.ModelAdmin):
         "amenities",
         "created_at",
     )
-    readonly_fields = ("created_at", "updated_at")
+    search_fields = (
+        "^name",
+        "=price",
+        "owner__username",
+    )
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
 
 
 @admin.register(Amenity)
 class AmenityAdmin(admin.ModelAdmin):
-    list_filter = ("name", "description", "created_at", "updated_at")
-    readonly_fields = ("created_at", "updated_at")
+    list_filter = (
+        "name",
+        "description",
+        "created_at",
+        "updated_at",
+    )
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
