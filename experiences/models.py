@@ -3,8 +3,7 @@ from common.models import CommonModel
 
 
 class Experience(CommonModel):
-
-    """ Experience Definition """
+    """Experience Definition"""
 
     name = models.CharField(max_length=250, default="")
     country = models.CharField(max_length=50, default="SouthKorea")
@@ -15,17 +14,24 @@ class Experience(CommonModel):
     start = models.TimeField()
     end = models.TimeField()
     description = models.TextField()
-    perks = models.ManyToManyField("experiences.Perk")
+    perks = models.ManyToManyField(
+        "experiences.Perk",
+        related_name="experiences",
+    )
     category = models.ForeignKey(
-        'categories.Category', null=True, blank=True, on_delete=models.SET_NULL)
+        "categories.Category",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="experiences",
+    )
 
     def __str__(self) -> str:
         return self.name
 
 
 class Perk(CommonModel):
-
-    """ what is included on an Experience """
+    """what is included on an Experience"""
 
     name = models.CharField(max_length=100)
     details = models.CharField(max_length=250, blank=True, default="")

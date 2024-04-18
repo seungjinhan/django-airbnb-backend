@@ -20,6 +20,7 @@ class Message(CommonModel):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
+        related_name="messages",
     )
     room = models.ForeignKey(
         "direct_messages.ChattingRoom",

@@ -3,18 +3,20 @@ from common.models import CommonModel
 
 
 class Category(CommonModel):
-
-    """ Room or Experience Category """
+    """Room or Experience Category"""
 
     class CategoryKindChoices(models.TextChoices):
-        ROOMS = ('rooms', 'Rooms')
-        EXPERIENCES = ('experiences', 'Experiences')
+        ROOMS = ("rooms", "Rooms")
+        EXPERIENCES = ("experiences", "Experiences")
 
     name = models.CharField(max_length=50)
-    kind = models.CharField(max_length=15, choices=CategoryKindChoices)
+    kind = models.CharField(
+        max_length=15,
+        choices=CategoryKindChoices,
+    )
 
     def __str__(self) -> str:
-        return f'{self.kind.title()}:{self.name}'
+        return f"{self.kind.title()}:{self.name}"
 
     class Meta:
-        verbose_name_plural = 'Categories'
+        verbose_name_plural = "Categories"
