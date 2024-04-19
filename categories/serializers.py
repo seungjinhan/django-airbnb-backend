@@ -5,9 +5,7 @@ from .models import Category
 class CategorySerializer(serializers.Serializer):
     pk = serializers.IntegerField(read_only=True)
     name = serializers.CharField(required=True, max_length=50)
-    kind = serializers.ChoiceField(
-        max_length=15, choices=Category.CategoryKindChoices.choices
-    )
+    kind = serializers.ChoiceField(choices=Category.CategoryKindChoices.choices)
     created_at = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data):
