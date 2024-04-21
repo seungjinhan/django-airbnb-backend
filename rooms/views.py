@@ -11,6 +11,8 @@ from rest_framework.exceptions import (
 from .models import Amenity, Room
 from categories.models import Category
 from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
+from common import utils
+from reviews.serializers import ReviewSerializer
 
 
 class Amenities(APIView):
@@ -30,14 +32,14 @@ class Amenities(APIView):
 
 
 class AmenityDetail(APIView):
-    def get_object(self, pk):
-        try:
-            return Amenity.objects.get(pk=pk)
-        except Amenity.DoesNotExist:
-            raise NotFound
+    # def get_object(self, pk):
+    #     try:
+    #         return Amenity.objects.get(pk=pk)
+    #     except Amenity.DoesNotExist:
+    #         raise NotFound
 
     def get(self, req, pk):
-        amenity = self.get_object(pk)
+        amenity = utils.get_object(Amenity, pk)
         serializer = AmenitySerializer(amenity)
         return Response(serializer.data)
 
@@ -102,14 +104,14 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
-    def get_object(self, pk):
-        try:
-            return Room.objects.get(pk=pk)
-        except Room.DoesNotExist:
-            raise NotFound
+    # def get_object(self, pk):
+    #     try:
+    #         return Room.objects.get(pk=pk)
+    #     except Room.DoesNotExist:
+    #         raise NotFound
 
     def get(self, req, pk):
-        data = self.get_object(pk)
+        data = utils.get_object(Room, pk)
         serializer = RoomDetailSerializer(
             data,
             context={"req": req},
@@ -132,6 +134,25 @@ class RoomDetail(APIView):
 
         data.delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+class RoomReviews(APIView):
+
+    def get(self, req, pk):
+        # print(req.query_params)
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            page = 1
+        page_size = 3
+        start = (page - 1) * page_size
+        end = start + page_size
+        room = utils.get_object(Room, pk)
+        serializer = ReviewSerializer(
+            room.reviews.all()[start:end],
+            many=True,
+        )
+        return Response(serializer.data)
 
 
 # from django.shortcuts import render
