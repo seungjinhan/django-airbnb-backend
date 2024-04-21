@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from django.db import transaction
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -61,6 +62,9 @@ class AmenityDetail(APIView):
 
 
 class Rooms(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, req):
         all_data = Room.objects.all()
         serializer = RoomListSerializer(
@@ -71,46 +75,39 @@ class Rooms(APIView):
         return Response(serializer.data)
 
     def post(self, req):
-        user = req.user
-        if user.is_authenticated:
-            serializer = RoomDetailSerializer(data=req.data)
-            if serializer.is_valid():
-                category_pk = req.data.get("category")
-                if not category_pk:
-                    raise ParseError("Category is required")
-                try:
-                    category = Category.objects.get(pk=category_pk)
-                    if category.kind == Category.CategoryKindChoices.EXPERIENCES:
-                        raise ParseError("The Category should be rooms")
+        serializer = RoomDetailSerializer(data=req.data)
+        if serializer.is_valid():
+            category_pk = req.data.get("category")
+            if not category_pk:
+                raise ParseError("Category is required")
+            try:
+                category = Category.objects.get(pk=category_pk)
+                if category.kind == Category.CategoryKindChoices.EXPERIENCES:
+                    raise ParseError("The Category should be rooms")
 
-                except Category.DoesNotExist:
-                    raise ParseError("The Category not found")
+            except Category.DoesNotExist:
+                raise ParseError("The Category not found")
 
-                try:
-                    with transaction.atomic():
-                        room = serializer.save(owner=user, category=category)
+            try:
+                with transaction.atomic():
+                    room = serializer.save(owner=req.user, category=category)
 
-                        # Amenity 체크
-                        amenities = req.data.get("amenities")
-                        for amenity_pk in amenities:
-                            amenity = Amenity.objects.get(pk=amenity_pk)
-                            room.amenities.add(amenity)
-                        serializer = RoomDetailSerializer(room)
-                        return Response(serializer.data)
-                except Exception:
-                    raise ParseError("The Amenity is not found")
-            else:
-                return Response(serializer.errors)
+                    # Amenity 체크
+                    amenities = req.data.get("amenities")
+                    for amenity_pk in amenities:
+                        amenity = Amenity.objects.get(pk=amenity_pk)
+                        room.amenities.add(amenity)
+                    serializer = RoomDetailSerializer(room)
+                    return Response(serializer.data)
+            except Exception:
+                raise ParseError("The Amenity is not found")
         else:
-            raise NotAuthenticated
+            return Response(serializer.errors)
 
 
 class RoomDetail(APIView):
-    # def get_object(self, pk):
-    #     try:
-    #         return Room.objects.get(pk=pk)
-    #     except Room.DoesNotExist:
-    #         raise NotFound
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req, pk):
         data = utils.get_object(Room, pk)
@@ -122,15 +119,11 @@ class RoomDetail(APIView):
 
     def put(self, req, pk):
         room = self.get_object(pk)
-        if not req.user.is_authenticated:
-            raise NotAuthenticated
         if room.owner != req.user:
             raise PermissionDenied
 
     def delete(self, req, pk):
         data = self.get_object(pk)
-        if not req.user.is_authenticated:
-            raise NotAuthenticated
         if data.owner != req.user:
             raise PermissionDenied
 
@@ -158,9 +151,9 @@ class RoomReviews(APIView):
 
 
 class RoomPhotos(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req, pk):
-        if not req.user.is_authenticated:
-            raise NotAuthenticated
         room = utils.get_object(Room, pk)
         if req.user != room.owner:
             raise PermissionDenied
