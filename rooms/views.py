@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from django.db import transaction
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError
@@ -72,20 +73,19 @@ class Rooms(APIView):
                 except Category.DoesNotExist:
                     raise ParseError("The Category not found")
 
-                room = serializer.save(owner=user, category=category)
+                try:
+                    with transaction.atomic():
+                        room = serializer.save(owner=user, category=category)
 
-                # Amenity 체크
-                amenities = req.data.get("amenities")
-                for amenity_pk in amenities:
-                    try:
-                        amenity = Amenity.objects.get(pk=amenity_pk)
-                        room.amenities.add(amenity)
-                    except Amenity.DoesNotExist:
-                        room.delete()
-                        raise ParseError(f"Amenity with id {amenity_pk} not found")
-
-                serializer = RoomDetailSerializer(room)
-                return Response(RoomDetailSerializer(room).data)
+                        # Amenity 체크
+                        amenities = req.data.get("amenities")
+                        for amenity_pk in amenities:
+                            amenity = Amenity.objects.get(pk=amenity_pk)
+                            room.amenities.add(amenity)
+                        serializer = RoomDetailSerializer(room)
+                        return Response(serializer.data)
+                except Exception:
+                    raise ParseError("The Amenity is not found")
             else:
                 return Response(serializer.errors)
         else:
