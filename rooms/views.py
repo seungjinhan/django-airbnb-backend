@@ -14,6 +14,7 @@ from categories.models import Category
 from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
 from common import utils
 from reviews.serializers import ReviewSerializer
+from medias.serializers import PhotoSerializer
 
 
 class Amenities(APIView):
@@ -158,7 +159,17 @@ class RoomReviews(APIView):
 
 class RoomPhotos(APIView):
     def post(self, req, pk):
-        pass
+        if not req.user.is_authenticated:
+            raise NotAuthenticated
+        room = utils.get_object(Room, pk)
+        if req.user != room.owner:
+            raise PermissionDenied
+        serializer = PhotoSerializer(data=req.data)
+        if serializer.is_valid():
+            photo = serializer.save(room=room)
+            return Response(PhotoSerializer(photo).data)
+        else:
+            return Response(serializer.errors)
 
 
 # from django.shortcuts import render
