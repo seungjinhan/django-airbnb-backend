@@ -2,7 +2,12 @@ from rest_framework.views import APIView
 from django.db import transaction
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError
+from rest_framework.exceptions import (
+    NotFound,
+    NotAuthenticated,
+    ParseError,
+    PermissionDenied,
+)
 from .models import Amenity, Room
 from categories.models import Category
 from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
@@ -103,6 +108,16 @@ class RoomDetail(APIView):
         data = self.get_object(pk)
         serializer = RoomDetailSerializer(data)
         return Response(serializer.data)
+
+    def delete(self, req, pk):
+        data = self.get_object(pk)
+        if not req.user.is_authenticated:
+            raise NotAuthenticated
+        if data.owner != req.user:
+            raise PermissionDenied
+
+        data.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 # from django.shortcuts import render
