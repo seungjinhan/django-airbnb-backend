@@ -133,6 +133,8 @@ class RoomDetail(APIView):
 
 class RoomReviews(APIView):
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, req, pk):
         # print(req.query_params)
         try:
@@ -148,6 +150,16 @@ class RoomReviews(APIView):
             many=True,
         )
         return Response(serializer.data)
+
+    def post(self, req, pk):
+        srz = ReviewSerializer(data=req.data)
+        if srz.is_valid():
+            review = srz.save(
+                user=req.user,
+                room=utils.get_object(Room, pk),
+            )
+            srz = ReviewSerializer(review)
+            return Response(srz.data)
 
 
 class RoomPhotos(APIView):
