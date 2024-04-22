@@ -1,6 +1,8 @@
 from django.conf import settings
-from rest_framework.views import APIView
 from django.db import transaction
+from django.utils import timezone
+
+from rest_framework.views import APIView
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -16,6 +18,8 @@ from .serializers import AmenitySerializer, RoomListSerializer, RoomDetailSerial
 from common import utils
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
+from bookings.models import Booking
+from bookings.serializers import PublicBookingSerializer, CreateRoomBookingSerializer
 
 
 class Amenities(APIView):
@@ -118,7 +122,7 @@ class RoomDetail(APIView):
         return Response(serializer.data)
 
     def put(self, req, pk):
-        room = self.get_object(pk)
+        room = utils.get_object(model=Room, pk=pk)
         if room.owner != req.user:
             raise PermissionDenied
 
@@ -175,6 +179,42 @@ class RoomPhotos(APIView):
             return Response(PhotoSerializer(photo).data)
         else:
             return Response(serializer.errors)
+
+
+class RoomBookings(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req, pk):
+        room = utils.get_object(model=Room, pk=pk)
+        now = timezone.localtime(timezone.now()).date()
+
+        bookings = Booking.objects.filter(
+            room=room,
+            kind=Booking.BookingKindChoices.ROOM,
+            check_in__gt=now,
+        )
+        srz = PublicBookingSerializer(
+            bookings,
+            many=True,
+        )
+        return Response(srz.data)
+
+    def post(self, req, pk):
+        room = utils.get_object(
+            model=Room,
+            pk=pk,
+        )
+        srz = CreateRoomBookingSerializer(data=req.data)
+        if srz.is_valid():
+            booking = srz.save(
+                room=room,
+                user=req.user,
+                kind=Booking.BookingKindChoices.ROOM,
+            )
+            srz = PublicBookingSerializer(booking)
+            return Response(srz.data)
+        else:
+            return Response(srz.errors)
 
 
 # from django.shortcuts import render
