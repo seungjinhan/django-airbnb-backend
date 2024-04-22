@@ -56,11 +56,8 @@ class WishListDetail(APIView):
 class WishListToggle(APIView):
 
     def put(self, req, pk, room_pk):
-        print("!!!!!!")
         wishlist = utils.get_object(model=WishList, pk=pk, user=req.user)
-        print("!!!!!!2")
         room = utils.get_object(model=Room, pk=room_pk)
-        print("!!!!!!3")
 
         if wishlist.rooms.filter(pk=room.pk).exists():
             wishlist.rooms.remove(room)
