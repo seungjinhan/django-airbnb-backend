@@ -19,25 +19,29 @@ movies_db = [
 ]
 
 
+def movies() -> typing.List[Movie]:
+    return movies_db
+
+
+def movie(movie_id: int) -> Movie:
+    return movies_db[movie_id - 1]
+
+
+def add_movie(title: str, year: int, rating: int) -> Movie:
+    m = Movie(pk=len(movies_db) + 1, title=title, year=year, rating=rating)
+    movies_db.append(m)
+    return m
+
+
 @strawberry.type
 class Query:
-    @strawberry.field
-    def movies(self) -> typing.List[Movie]:
-        return movies_db
-
-    @strawberry.field
-    def movie(self, movie_id: int) -> Movie:
-        return movies_db[movie_id - 1]
+    movies: typing.List[Movie] = strawberry.field(resolver=movies)
+    movie: Movie = strawberry.field(resolver=movie)
 
 
 @strawberry.type
 class Mutation:
-
-    @strawberry.mutation
-    def add_movie(self, title: str, year: int, rating: int) -> Movie:
-        m = Movie(pk=len(movies_db) + 1, title=title, year=year, rating=rating)
-        movies_db.append(m)
-        return m
+    add_movie: Movie = strawberry.mutation(resolver=add_movie)
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
