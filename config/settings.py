@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "rest_framework.authtoken",  # 추가 후 migrate 실행
     "strawberry.django",
 ]
 
@@ -148,7 +149,9 @@ PAGE_SIZE = 3
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # "rest_framework.authentication.BasicAuthentication", 이건 안쓰는 인증모델 - 로그인 창이 뜸
         "rest_framework.authentication.SessionAuthentication",
         "config.permissions.TrustMeBroAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ]
 }

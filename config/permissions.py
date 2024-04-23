@@ -5,7 +5,7 @@ from users.models import User
 
 class TrustMeBroAuthentication(BaseAuthentication):
     def authenticate(self, req):
-        username = req.header.get("trust-me")
+        username = req.headers.get("trust-me")
         if not username:
             return None
         try:
