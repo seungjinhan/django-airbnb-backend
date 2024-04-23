@@ -151,7 +151,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # "rest_framework.authentication.BasicAuthentication", 이건 안쓰는 인증모델 - 로그인 창이 뜸
         "rest_framework.authentication.SessionAuthentication",
-        "config.permissions.TrustMeBroAuthentication",
+        "config.authentication.TrustMeBroAuthentication",
         "rest_framework.authentication.TokenAuthentication",
+        "config.authentication.JWTAuthentication",
     ]
 }

@@ -1,4 +1,6 @@
+import jwt
 from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -99,3 +101,28 @@ class Users(APIView):
             return Response(srz.data)
         else:
             return Response(srz.errors)
+
+
+class JWTLogin(APIView):
+    def post(self, req):
+        username = req.data.get("username")
+        password = req.data.get("password")
+
+        if not username or not password:
+            raise exceptions.ParseError
+
+        user = authenticate(
+            req,
+            username=username,
+            password=password,
+        )
+
+        if user:
+            token = jwt.encode(
+                {"pk": user.pk},
+                settings.SECRET_KEY,
+                algorithm="HS256",
+            )
+            return Response({"token": token})
+        else:
+            return Response({"error": "wrong password"})
