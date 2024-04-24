@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from rest_framework.views import APIView
-from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import (
@@ -35,7 +35,10 @@ class Amenities(APIView):
             amenity = serializer.save()
             return Response(AmenitySerializer(amenity).data)
         else:
-            return Response(serializer.errors)
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class AmenityDetail(APIView):
@@ -51,13 +54,16 @@ class AmenityDetail(APIView):
         return Response(serializer.data)
 
     def put(self, req, pk):
-        amenity = self.get_object(pk)
+        amenity = utils.get_object(model=Amenity, pk=pk)
         serializer = AmenitySerializer(amenity, data=req.data, partial=True)
         if serializer.is_valid():
             update_amenity = serializer.save()
             return Response(AmenitySerializer(update_amenity).data)
         else:
-            return Response(serializer.errors)
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
     def delete(self, req, pk):
         amenity = self.get_object(pk)
@@ -106,7 +112,10 @@ class Rooms(APIView):
             except Exception:
                 raise ParseError("The Amenity is not found")
         else:
-            return Response(serializer.errors)
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class RoomDetail(APIView):
@@ -178,7 +187,10 @@ class RoomPhotos(APIView):
             photo = serializer.save(room=room)
             return Response(PhotoSerializer(photo).data)
         else:
-            return Response(serializer.errors)
+            return Response(
+                serializer.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class RoomBookings(APIView):
@@ -214,7 +226,10 @@ class RoomBookings(APIView):
             srz = PublicBookingSerializer(booking)
             return Response(srz.data)
         else:
-            return Response(srz.errors)
+            return Response(
+                srz.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 # from django.shortcuts import render
