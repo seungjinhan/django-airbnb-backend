@@ -1,4 +1,6 @@
 import jwt
+import requests
+
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
 
@@ -126,3 +128,102 @@ class JWTLogin(APIView):
             return Response({"token": token})
         else:
             return Response({"error": "wrong password"})
+
+
+class GithugLogin(APIView):
+    def post(self, req):
+        try:
+            code = req.data.get("code")
+            access_token = requests.post(
+                f"https://github.com/login/oauth/access_token?code={code}&client_id=123750bcf89f6b89694b&client_secret={settings.GITHUB_SECRET}",
+                headers={"Accept": "application/json"},
+            )
+            access_token = access_token.json().get("access_token")
+
+            user_data = requests.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/json",
+                },
+            )
+            user_data = user_data.json()
+
+            user_email = requests.get(
+                "https://api.github.com/user/emails",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/json",
+                },
+            )
+            user_email = user_email.json()
+            email = user_email[0]["email"]
+            try:
+                user = User.objects.get(email=email)
+                login(req, user)
+                return Response(status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                user = User.objects.create(
+                    username=user_data.get("login"),
+                    email=email,
+                    name=user_data.get("name"),
+                    avator=user_data.get("avatar_url"),
+                )
+                print(user)
+                user.set_unusable_password()
+                user.save()
+                login(req, user)
+                return Response(status=status.HTTP_200_OK)
+
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class KakaoLogin(APIView):
+    def post(self, req):
+        try:
+            code = req.data.get("code")
+            access_token = requests.post(
+                "https://kauth.kakao.com/oauth/token",
+                headers={
+                    "Content-type": "application/x-www-form-urlencoded;charset=utf-8"
+                },
+                data={
+                    "grant_type": "authorization_code",
+                    "client_id": "5006367c6b8a3e5ab778b34c24a2e0cc",
+                    "redirect_uri": "http://localhost:3001/social/kakao",
+                    "code": code,
+                },
+            )
+            access_token = access_token.json().get("access_token")
+
+            user_data = requests.get(
+                "https://kapi.kakao.com/v2/user/me",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+                },
+            )
+            user_data = user_data.json()
+            kakao_account = user_data.get("kakao_account")
+            profile = kakao_account.get("profile")
+
+            email = kakao_account.get("email")
+            try:
+                user = User.objects.get(email=email)
+                login(req, user)
+                return Response(status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                user = User.objects.create(
+                    username=profile.get("nickname"),
+                    email=email,
+                    name=profile.get("nickname"),
+                    avator=profile.get("profile_image_url"),
+                )
+                user.set_unusable_password()
+                user.save()
+                login(req, user)
+                return Response(status=status.HTTP_200_OK)
+
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
