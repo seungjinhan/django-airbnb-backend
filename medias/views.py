@@ -20,3 +20,8 @@ class PhotoDetail(APIView):
         photo.delete()
 
         return Response(status=HTTP_200_OK)
+
+
+class GetUploadUrl(APIView):
+    def post(self, req):
+        pass

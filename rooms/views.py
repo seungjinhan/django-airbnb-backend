@@ -107,7 +107,7 @@ class Rooms(APIView):
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
                         room.amenities.add(amenity)
-                    serializer = RoomDetailSerializer(room)
+                    serializer = RoomDetailSerializer(room, context={"req": req})
                     return Response(serializer.data)
             except Exception:
                 raise ParseError("The Amenity is not found")
@@ -216,7 +216,7 @@ class RoomBookings(APIView):
             model=Room,
             pk=pk,
         )
-        srz = CreateRoomBookingSerializer(data=req.data)
+        srz = CreateRoomBookingSerializer(data=req.data, context={"room": room})
         if srz.is_valid():
             booking = srz.save(
                 room=room,
@@ -230,6 +230,22 @@ class RoomBookings(APIView):
                 srz.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class RoomBookingCheck(APIView):
+    def get(self, req, pk):
+        room = utils.get_object(model=Room, pk=pk)
+        check_out = req.query_params.get("check_out")
+        check_in = req.query_params.get("check_in")
+        print(check_out, check_in)
+        if Booking.objects.filter(
+            room=room,
+            check_in__lte=check_out,
+            check_out__gte=check_in,
+        ).exists():
+            return Response({"ok": False})
+
+        return Response({"ok": True})
 
 
 # from django.shortcuts import render
